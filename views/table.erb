@@ -1,25 +1,42 @@
 <head>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"> </script>
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
 <style>
+
 body {
-  background-color: black;
+  background-color: grey;
 }
 </style>
-<div class="container">
+</head>
+<h1 class="display-4">Food Picker v1.0</h1>
+<br>
+<br>
+<form class="form-inline" action="/add" method="post">
+  <div class="form-group mb-2">
+    <input type="text" class="form-control" id="name" value="Restaurant Name" required>
+  </div>
+  <div class="form-group mb-2">
+    <input type="text" class="form-control" id="type" value="Genre">
+  </div>
+  <div class="form-group mb-2">
+    <input type="text" class="form-control" id="address" value="Address">
+  </div>
+  <button type="submit" class="btn btn-primary mb-2"> Add a location</button>
+  </form>
 <table class="table table-hover table-dark mx-auto">
   <thead>
     <tr>
       <th>ID</th>
       <th>Name</th>
-      <th>Type</th>
+      <th>Genre</th>
       <th>Address</th>
     </tr>
   </thead>
   <tbody>
     <% @items.each do |item| %>
       <tr>
-        <td><input type="checkbox" name="id[]"</td>
+        <td><input type="checkbox" name="selected_ids" value="<%= item["id"] %>"></td>
         <td><%= item["name"] %></td>
         <td><%= item["type"] %></td>
         <td><%= item["address"] %></td>
@@ -28,3 +45,58 @@ body {
   </tbody>
 </table>
 </div>
+
+
+<center>
+<div class="container">
+  <input type="button" class="btn btn-primary" value="Select Random Place" onclick="submitForm()">
+  <h1>
+  <div class="text-center" id="selected-place-name"></div>
+  </h1>
+</div>  
+<div id="selected-place-address"></div>
+</center>
+<script>
+  function submitForm() {
+    // Get all the selected checkboxes
+    var selectedCheckboxes = document.querySelectorAll("input[name='selected_ids']:checked");
+    var selectedIds = [];
+    // Store their values (which should be the IDs) in an array
+    for (var i = 0; i < selectedCheckboxes.length; i++) {
+    selectedIds.push(selectedCheckboxes[i].value);
+    
+  }
+  // Send a request to the server with the selected IDs
+  $.ajax({
+    type: 'POST',
+    url: '/random',
+    data: JSON.stringify({selectedIds: selectedIds}),
+    contentType: 'application/json',
+    success: function(data) {
+      if (data.success) {
+        // update the page with the selected place
+        var selectedPlace = data.selectedPlace;
+        document.getElementById("selected-place-name").innerHTML = selectedPlace.name;
+        document.getElementById("selected-place-address").innerHTML = selectedPlace.address;
+        document.getElementById("selected-place-type").innerHTML = selectedPlace.type;
+      } else {
+        console.log(data.error);
+      }
+    }
+  });
+}
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
