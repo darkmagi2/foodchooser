@@ -15,6 +15,12 @@ get '/' do
   erb :table
 end
 
+get '/deleted' do
+  results = client.query("SELECT * FROM deleted")
+  @items = results.to_a
+  erb :deleted
+end
+
 get '/add' do
   erb :entryform
 end
@@ -45,7 +51,7 @@ post '/add' do
   
   client.query("INSERT INTO foodplaces (name, type, address) VALUES ('#{name}', '#{type}', '#{address}')")
   #client.query("insert into foodplaces (name, type, address) VALUES ('#{params[:name]}', '#{params[:type]}', '#{params[:address]}')")
-  redirect '/items'
+  redirect '/'
 end
 
 post '/random' do
@@ -64,6 +70,8 @@ end
 post '/delete' do
   id = params[:id]
   begin
+    deleted_item = client.query("SELECT * FROM foodplaces WHERE id = #{id}").first
+    client.query("INSERT INTO deleted (id, name, type, address) VALUES (#{deleted_item['id']}, '#{deleted_item['name']}', '#{deleted_item['type']}', '#{deleted_item['address']}')")
     client.query("DELETE FROM foodplaces WHERE id = #{id}")
     content_type :json
     { message: 'Entry deleted successfully' }.to_json
@@ -73,4 +81,16 @@ post '/delete' do
   end
 end
 
-
+post '/restore' do
+  id = params[:id]
+  begin
+    deleted_item = client.query("SELECT * FROM deleted WHERE id = #{id}").first
+    client.query("INSERT INTO foodplaces (id, name, type, address) VALUES (#{deleted_item['id']}, '#{deleted_item['name']}', '#{deleted_item['type']}', '#{deleted_item['address']}')")
+    client.query("DELETE FROM deleted WHERE id = #{id}")
+    content_type :json
+    { message: 'Entry restored successfully' }.to_json
+  rescue
+    status 500
+    { message: 'Error restoring entry' }.to_json
+  end
+end

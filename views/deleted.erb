@@ -1,0 +1,143 @@
+<head>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.2/css/jquery.dataTables.min.css"></script>
+  <script src="https://cdn.datatables.net/1.13.2/js/jquery.dataTables.min.js"></script>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.2/css/jquery.dataTables.min.css"/>
+
+<style>
+
+body {
+  background-color: #1c1f24;
+  color: white;
+}
+.dataTables_length select {
+  background-color: #1c1f24 !important;
+  color: #fff;
+}
+.dataTables_wrapper select, .dataTables_wrapper .dataTables_paginate .paginate_button {
+  background-color: #1A2B5B !important;
+  color: white;
+  border-radius: 10px;
+}
+
+.dataTables_filter input {
+  color: white;
+}
+</style>
+</head>
+
+<h1 class="display-4">UNDELETER 1.0</h1>
+<br>
+<br>
+  
+
+<!-- table id="foodplaces" class="table table-hover table-dark mx-auto"> -->
+<table id="foodplaces" class="table table-hover table-dark mx-auto">
+  <thead>
+    <tr>
+      <th> <input type="checkbox" id="select-all"/> Select All</th>
+      <th>Name</th>
+      <th>Genre</th>
+      <th>Address</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @items.each do |item| %>
+      <tr>
+        <td><input type="checkbox" name="selected_ids" value="<%= item["id"] %>"></td>
+        <td><%= item["name"] %></td>
+        <td><%= item["type"] %></td>
+        <td><%= item["address"] %></td>
+        <td>
+          <button class="btn btn-danger btn-sm delete" data-id="<%= item['id'] %>">Restore</button>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+
+
+<script>
+$(document).ready(function() {
+  $('#foodplaces').DataTable();
+  $('div.dataTables_filter').addClass('text-right');
+  $('div.dataTables_filter').css('color',  'white');
+});
+</script>
+
+<script>
+  function submitForm() {
+    // Get all the selected checkboxes
+    var selectedCheckboxes = document.querySelectorAll("input[name='selected_ids']:checked");
+    var selectedIds = [];
+    // Store their values (which should be the IDs) in an array
+    for (var i = 0; i < selectedCheckboxes.length; i++) {
+    selectedIds.push(selectedCheckboxes[i].value);
+    
+  }
+  // Send a request to the server with the selected IDs
+  $.ajax({
+    type: 'POST',
+    url: '/random',
+    data: JSON.stringify({selectedIds: selectedIds}),
+    contentType: 'application/json',
+    success: function(data) {
+      if (data.success) {
+        // update the page with the selected place
+        var selectedPlace = data.selectedPlace;
+        document.getElementById("selected-place-name").innerHTML = selectedPlace.name;
+        document.getElementById("selected-place-address").innerHTML = selectedPlace.address;
+        document.getElementById("selected-place-type").innerHTML = selectedPlace.type;
+      } else {
+        console.log(data.error);
+      }
+    }
+  });
+  }
+$(document).ready(function(){
+    // Select/deselect all checkboxes when the "Select All" checkbox is clicked
+    $("#select-all").click(function(){
+      $("input[name='selected_ids']").prop("checked", $(this).prop("checked"));
+    });
+  });
+
+
+$(document).on('click', '.delete', function() {
+  var id = $(this).data('id');
+  if (confirm('Are you sure you want to restore this entry?')) {
+    $.ajax({
+      url: '/restore',
+      method: 'POST',
+      data: { id: id },
+      success: function(response) {
+        alert(response.message);
+        location.reload();
+      },
+      error: function() {
+        alert('Error deleting entry');
+      }
+    });
+  }
+});
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
