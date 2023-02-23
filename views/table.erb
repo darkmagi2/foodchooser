@@ -28,7 +28,7 @@ body {
 </style>
 </head>
 
-<h1 class="display-4">Food Picker v1.0</h1>
+<h1 class="display-4">Food Picker v1.1</h1>
 <br>
 <br>
 <form class="form-inline" action="/add" method="post">
@@ -84,9 +84,12 @@ body {
 
 <script>
 $(document).ready(function() {
-  $('#foodplaces').DataTable();
+  $('#foodplaces').DataTable({
+    "pageLength": 50,
+  });
   $('div.dataTables_filter').addClass('text-right');
   $('div.dataTables_filter').css('color',  'white');
+  
 });
 </script>
 

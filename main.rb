@@ -3,11 +3,22 @@ require 'sinatra'
 require 'mysql2'
 require 'sinatra/config_file'
 require 'json'
+require 'connection_pool'
 
 config_file 'config.yml'
 #establish connection
 @db_pass = settings.db_pass
-client = Mysql2::Client.new(:host => "localhost", :username => "sinatra", :password => @db_pass, :database => "foodpicker")
+
+DB_POOL = ConnectionPool.new(size: 5, timeout: 5) do
+  Mysql2::Client.new(
+    host: 'localhost',
+    username: 'sinatra',
+    password: @db_pass,
+    database: 'foodpicker'
+  )
+end
+
+client = DB_POOL.with { |conn| conn }
 
 get '/' do
   results = client.query("SELECT * FROM foodplaces")
@@ -50,13 +61,10 @@ post '/add' do
   address = client.escape(params[:address])
   
   client.query("INSERT INTO foodplaces (name, type, address) VALUES ('#{name}', '#{type}', '#{address}')")
-  #client.query("insert into foodplaces (name, type, address) VALUES ('#{params[:name]}', '#{params[:type]}', '#{params[:address]}')")
   redirect '/'
 end
 
 post '/random' do
-  #selected_ids = [1,2,3] 
-  #selected_ids = params[:selectedIds]
   selected_ids = JSON.parse(request.body.read)["selectedIds"]
   random_id = selected_ids.sample
   stmt = client.prepare("SELECT * FROM foodplaces WHERE id IN(?) ORDER BY RAND() LIMIT 1")
