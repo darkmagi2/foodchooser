@@ -14,7 +14,9 @@ DB_POOL = ConnectionPool.new(size: 5, timeout: 5) do
     host: 'localhost',
     username: 'sinatra',
     password: @db_pass,
-    database: 'foodpicker'
+    database: 'foodpicker',
+    keepalive: true,
+    reconnect: true
   )
 end
 
@@ -72,6 +74,15 @@ post '/random' do
   @selected_place = results.first
   content_type :json
   {success: true, selectedPlace: @selected_place}.to_json
+  
+end
+
+get '/random' do
+  result = client.query("SELECT * FROM foodplaces ORDER BY RAND() LIMIT 1")
+  entry = result.first
+  content_type :json
+  result.to_json
+  { id: entry['id'], name: entry['name'], type: entry['type'], address: entry['address'] }.to_json
   
 end
 
