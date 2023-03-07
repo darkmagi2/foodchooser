@@ -68,10 +68,17 @@ end
 
 post '/random' do
   selected_ids = JSON.parse(request.body.read)["selectedIds"]
-  random_id = selected_ids.sample
-  stmt = client.prepare("SELECT * FROM foodplaces WHERE id IN(?) ORDER BY RAND() LIMIT 1")
-  results = stmt.execute(random_id)
-  @selected_place = results.first
+  
+  if selected_ids.empty?
+    results = client.query("SELECT * FROM foodplaces ORDER BY RAND() LIMIT 1")
+    @selected_place = results.first
+  else
+    random_id = selected_ids.sample
+    stmt = client.prepare("SELECT * FROM foodplaces WHERE id IN(?) ORDER BY RAND() LIMIT 1")
+    results = stmt.execute(random_id)
+    @selected_place = results.first
+  end
+  
   content_type :json
   {success: true, selectedPlace: @selected_place}.to_json
   
